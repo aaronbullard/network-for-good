@@ -14,8 +14,8 @@
         "guzzlehttp/guzzle": "~4.0"
     },
     "autoload": {
-        "psr-0": {
-            "Aaronbullard\\NetworkForGood": "src/"
+        "psr-4": {
+            "NetworkForGood\\": "src/"
         }
     },
     "minimum-stability": "stable"
