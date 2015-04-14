@@ -25,8 +25,11 @@ class Donor implements Arrayable {
 	protected $country;
 
 	protected $phone;
+	
+	// Partner defined id for donor
+	protected $token;
 
-	public function __construct($firstName, $lastName, $email, $address_1, $address_2 = NULL, $city, $state, $zipcode, $country, $phone, $token = NULL)
+	public function __construct($firstName, $lastName, $email, $address_1, $address_2 = NULL, $city, $state, $zipcode, $country, $phone, $token)
 	{
 		$this->firstName = (string) $firstName;
 		$this->lastName = (string) $lastName;
@@ -93,14 +96,8 @@ class Donor implements Arrayable {
 
 	public function toArray()
 	{
-		if( isset($this->token))
-		{
-			return [
-				'DonorToken' => $this->token
-			];
-		}
-
 		$obj = [
+			'DonorToken'	=> $this->token,
 			'DonorFirstName'=> $this->firstName,
 			'DonorLastName'	=> $this->lastName,
 			'DonorEmail'	=> $this->email,
