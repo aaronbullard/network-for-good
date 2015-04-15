@@ -85,6 +85,27 @@ class SoapGateway implements NetworkForGoodInterface {
 			throw new OtherErrorException($e->getMessage(), $e->getCode(), $e);
 		}
 	}
+	
+	public function deleteDonorCOF($cofId, $donorToken = NULL)
+	{
+		try{
+			$params = $this->partner->toArray();
+			$params['COFId'] = $cofId;
+			
+			if( isset($donorToken) )
+			{
+				$params['DonorToken'] = $donorToken;
+			}
+
+			$response = $this->client->DeleteDonorCOF( $params );
+
+			return $this->interpretResponse( $response->DeleteDonorCOFResult );
+		}
+		catch(SoapFault $e)
+		{
+			throw new OtherErrorException($e->getMessage(), $e->getCode(), $e);
+		}
+	}
 
 	protected function interpretResponse($response)
 	{
