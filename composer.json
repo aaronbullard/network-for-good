@@ -19,7 +19,7 @@
     },
     "autoload": {
         "psr-4": {
-            "NetworkForGood\\": "src/NetworkForGood/"
+            "NetworkForGood\\": "src/"
         }
     },
     "minimum-stability": "stable"

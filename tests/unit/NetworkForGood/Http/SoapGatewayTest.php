@@ -132,5 +132,47 @@ class SoapGatewayTest extends \Codeception\TestCase\Test
 		$this->testGetDonorCofsStatusFailed('OtherError');
 	}
 
+	public function testDeleteDonorCOF()
+	{
+		$params = $this->partner->toArray();
+		$params['COFId'] = 'cofid';
+
+		// Test Success without DonorToken
+		$soapClient = Mockery::mock('SoapClient');
+		$soapClient->shouldReceive('DeleteDonorCOF')->with($params)->once()->andReturn( $this->tester->mockResponse('DeleteDonorCOFResult'));
+		$gateway = $this->makeGateway( $soapClient );
+		$response = $gateway->deleteDonorCOF($params['COFId']);
+
+		$this->assertEquals('Success', $response->StatusCode);
+
+		// Test Success with DonorToken
+		$params['DonorToken'] = 'token';
+		$soapClient = Mockery::mock('SoapClient');
+		$soapClient->shouldReceive('DeleteDonorCOF')->with($params)->once()->andReturn( $this->tester->mockResponse('DeleteDonorCOFResult'));
+		$gateway = $this->makeGateway( $soapClient );
+		$response = $gateway->deleteDonorCOF($params['COFId'], $params['DonorToken']);
+
+		$this->assertEquals('Success', $response->StatusCode);
+	}
+
+	public function testMakeCOFDonation()
+	{
+		$transaction = $this->tester->makeDonationTransaction();
+
+		$transaction->addDonationLineItem( $this->tester->makeDonationLineItem() );
+		$transaction->addDonationLineItem( $this->tester->makeDonationLineItem() );
+		$transaction->addDonationLineItem( $this->tester->makeDonationLineItem() );
+		$transaction->addDonationLineItem( $this->tester->makeDonationLineItem() );
+
+		$params = array_merge($this->partner->toArray(), $transaction->toArray());
+
+		// Test Success without DonorToken
+		$soapClient = Mockery::mock('SoapClient');
+		$soapClient->shouldReceive('MakeCOFDonation')->with($params)->once()->andReturn( $this->tester->mockResponse('MakeCOFDonationResult'));
+		$gateway = $this->makeGateway( $soapClient );
+		$response = $gateway->makeCOFDonation($transaction);
+
+		$this->assertEquals('Success', $response->StatusCode);
+	}
 
 }
