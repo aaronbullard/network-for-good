@@ -93,6 +93,11 @@ class Donor implements Arrayable {
 	{
 		return $this->phone;
 	}
+	
+	public function getDonorToken()
+	{
+		return $this->token;
+	}
 
 	public function toArray()
 	{
