@@ -2,6 +2,7 @@
 // here you can define custom actions
 // all public methods declared in helper class will be available in $I
 
+use StdClass;
 use Faker\Factory as Faker;
 use Faker\Provider\pl_PL\Person;
 use Faker\Provider\Internet;
@@ -96,6 +97,25 @@ class Unit extends \Codeception\Module
 		$cof_id = $faker->domainWord;
 
 		return Transaction::createByIds($partner, $donorToken, $cof_id);
+	}
+
+	public function mockResponse($name, $StatusCode = 'Success', $Message = NULL, array $ErrorDetails = [], $CallDuration = 0)
+	{
+		$response = new StdClass;
+
+		$response->StatusCode = $StatusCode;
+
+		$response->Message = $Message;
+
+		$response->ErrorDetails = $ErrorDetails;
+
+		$response->CallDuration = $CallDuration;
+
+		$obj = new StdClass;
+
+		$obj->$name = $response;
+
+		return $obj;
 	}
 
 }

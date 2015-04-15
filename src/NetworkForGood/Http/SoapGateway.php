@@ -11,18 +11,19 @@ use NetworkForGood\Exceptions\ValidationFailedException;
 
 class SoapGateway implements NetworkForGoodInterface {
 
-	protected $wsdl;
+	// protected $wsdl;
 	protected $partner;
 	protected $client;
 
-	public function __construct(Partner $partner, $wsdl)
+	public function __construct(Partner $partner, SoapClient $client)
 	{
 		$this->partner 	= $partner;
-		$this->wsdl = $wsdl;
-		$this->client = new SoapClient($wsdl, [
-			'trace' => true,
-			'exceptions' => true
-		]);
+		// $this->wsdl = $wsdl;
+		$this->client = $client;
+		// $this->client = new SoapClient($wsdl, [
+		// 	'trace' => true,
+		// 	'exceptions' => true
+		// ]);
 	}
 
 	/**
@@ -100,6 +101,22 @@ class SoapGateway implements NetworkForGoodInterface {
 			$response = $this->client->DeleteDonorCOF( $params );
 
 			return $this->interpretResponse( $response->DeleteDonorCOFResult );
+		}
+		catch(SoapFault $e)
+		{
+			throw new OtherErrorException($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	public function getDonorDonationHistory($donorToken)
+	{
+		try{
+			$params = $this->partner->toArray();
+			$params['DonorToken'] = $donorToken;
+
+			$response = $this->client->GetDonorDonationHistory( $params );
+
+			return $this->interpretResponse( $response->GetDonorDonationHistoryResult );
 		}
 		catch(SoapFault $e)
 		{
