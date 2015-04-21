@@ -4,8 +4,10 @@ use SoapClient, SoapFault;
 use NetworkForGood\NetworkForGoodInterface;
 use NetworkForGood\Partner;
 use NetworkForGood\Donor;
-use NetworkForGood\CreditCards\CreditCard;
 use NetworkForGood\Transaction;
+use NetworkForGood\CreditCards\CreditCard;
+use NetworkForGood\Responses\CardOnFile;
+use NetworkForGood\Responses\COFId;
 use NetworkForGood\Exceptions\OtherErrorException;
 use NetworkForGood\Exceptions\ValidationFailedException;
 
@@ -29,7 +31,9 @@ class SoapGateway implements NetworkForGoodInterface {
 	{
 		$params = array_merge($donor->toArray(), $creditCard->toArray());
 
-		return $this->execute('CreateCOF', $params);
+		$response = $this->execute('CreateCOF', $params);
+
+		return new COFId( $response );
 	}
 
 	/**
@@ -49,9 +53,18 @@ class SoapGateway implements NetworkForGoodInterface {
 
 	public function getDonorCOFs($donorToken)
 	{
-		return $this->execute('GetDonorCOFs', [
+		$response = $this->execute('GetDonorCOFs', [
 			'DonorToken' => $donorToken
 		]);
+
+		$cards = $response->Cards->COFRecord;
+
+		// Set as array if not
+		$cards = is_array($cards) ? $cards : [$cards];
+
+		return array_map(function($record){
+			return new CardOnFile( $record );
+		}, $cards);
 	}
 	
 	public function deleteDonorCOF($cofId, $donorToken = NULL)
@@ -64,7 +77,9 @@ class SoapGateway implements NetworkForGoodInterface {
 			$params['DonorToken'] = $donorToken;
 		}
 
-		return $this->execute('DeleteDonorCOF', $params);
+		$response = $this->execute('DeleteDonorCOF', $params);
+
+		return $response->StatusCode === 'Success';
 	}
 
 	public function getDonorDonationHistory($donorToken)
