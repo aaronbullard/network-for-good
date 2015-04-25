@@ -79,4 +79,19 @@ class CreditCardTest extends \Codeception\TestCase\Test {
 		$cc = new Visa($name, $number, $exp_month, $exp_year, $csc);
 	}
 
+	public function testTheDefaultCardType()
+	{
+		extract( $this->getCreditCardInputs() );
+		$cc = new DefaultCreditCard('Visa', $name, $number, $exp_month, $exp_year, $csc);
+
+		$this->assertEquals('Visa', $cc->getCardType());
+		$this->assertEquals($name, $cc->getNameOnCard());
+		$this->assertEquals($number, $cc->getCardNumber());
+		$this->assertEquals('8431', $cc->getCardNumberLastFour());
+		$this->assertEquals($exp_month, $cc->getExpirationMonth());
+		$this->assertEquals($exp_year, $cc->getExpirationYear());
+		$this->assertEquals('12/2018', $cc->getExpiration());
+		$this->assertEquals($csc, $cc->getCSC());
+	}
+
 }
