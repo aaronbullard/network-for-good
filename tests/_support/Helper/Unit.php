@@ -6,12 +6,16 @@ use StdClass;
 use Faker\Factory as Faker;
 use Faker\Provider\pl_PL\Person;
 use Faker\Provider\Internet;
-use NetworkForGood\Donor;
-use NetworkForGood\Partner;
-use NetworkForGood\DonationLineItem;
-use NetworkForGood\DonationTransaction;
-use NetworkForGood\CreditCards\Amex;
-use NetworkForGood\Transaction;
+use NetworkForGood\Models\Donor;
+use NetworkForGood\Models\Partner;
+use NetworkForGood\Models\DonationItem;
+use NetworkForGood\Models\CreditCard;
+use NetworkForGood\Models\Transaction;
+
+use NetworkForGood\Contracts\DonorVis;
+use NetworkForGood\Contracts\RecurType;
+use NetworkForGood\Contracts\AddOrDeduct;
+use NetworkForGood\Contracts\TransactionType;
 
 class Unit extends \Codeception\Module
 {
@@ -23,26 +27,32 @@ class Unit extends \Codeception\Module
 		$streetAddress = $successful ? (string)$faker->numberBetween(1, 333) . $faker->streetName :
 										(string)$faker->numberBetween(334, 999) . $faker->streetName;
 
-		return new Donor(
-			$faker->firstName,
-			$faker->lastName,
-			$faker->email,
-			$streetAddress,
-			NULL,
-			$faker->city,
-			$faker->stateAbbr,
-			$faker->randomElement(['20005', '22213', '28412']),
-			'US',
-			$faker->phoneNumber,
-			$faker->randomNumber()
-		);
+		return new Donor([
+			'DonorToken' => $faker->word,
+			'DonorIpAddress' => $faker->ipv6,
+			'DonorFirstName' => $faker->firstName,
+			'DonorLastName' => $faker->lastName,
+			'DonorEmail' => $faker->email,
+			'DonorAddress1' => $streetAddress,
+			// 'DonorAddress2' => "",
+			'DonorCity' => $faker->city,
+			'DonorState' => $faker->stateAbbr,
+			'DonorZip' => $faker->randomElement(['20005', '22213', '28412']),
+			'DonorCountry' => 'US',
+			'DonorPhone' => $faker->phoneNumber	
+		]);
 	}
 
 	public function makePartner()
 	{
 		$faker = Faker::create();
 
-		return new Partner($faker->randomNumber(), $faker->domainWord, $faker->uuid, $faker->catchPhrase);
+		return new Partner([
+			'PartnerID' => $faker->word,
+			'PartnerPW' => $faker->domainWord,
+			'PartnerSource' => $faker->uuid,
+			'PartnerCampaign' => $faker->catchPhrase
+		]);
 	}
 
 	public function makeDonationLineItem()
@@ -50,13 +60,16 @@ class Unit extends \Codeception\Module
 		$faker = Faker::create();
 		$faker->addProvider(new Person($faker));
 
-		return new DonationLineItem(
-			$faker->taxpayerIdentificationNumber,
-			'ProvideAll',
-			$faker->numberBetween(10, 99000),
-			'NotRecurring',
-			'Add'
-		);
+		return new DonationItem([
+			"NpoEin" => $faker->taxpayerIdentificationNumber,
+			// "Designation" => ,
+			// "Dedication" => ,
+			"donorVis" => DonorVis::PROVIDE_ALL,
+			"ItemAmount" => $faker->numberBetween(10, 99000),
+			"RecurType" => RecurType::NOT_RECURRING,
+			"AddOrDeduct" => AddOrDeduct::ADD,
+			"TransactionType" => TransactionType::DONATION
+		]);
 	}
 
 	public function makeCreditCard($successful = TRUE)
@@ -64,39 +77,35 @@ class Unit extends \Codeception\Module
 		$faker = Faker::create();
 		$currYear = date('Y');
 
-		// return Test::create('Amex');
-
 		$cvc = $successful ? $faker->numberBetween(001, 300) : $faker->numberBetween(301, 600);
 
-		return new Amex(
-			$faker->name,
-			'371449635398431',
-			$faker->numberBetween(0, 12),
-			$faker->numberBetween($currYear, $currYear + 5),
-			(string) $cvc
-		);
+		return new CreditCard([
+			"NameOnCard" => $faker->name,
+			"CardType" => 'Amex',
+			"CardNumber" => '371449635398431',
+			"ExpMonth" => $faker->numberBetween(0, 12),
+			"ExpYear" => $faker->numberBetween($currYear, $currYear + 5),
+			"CSC" => (string) $cvc
+		]);
 	}
 
 	public function makeDonationTransaction($numOfDonations = 1)
 	{
 		$faker = Faker::create();
 
+		$partnerTransactionIdentifier = $faker->md5;
 		$partner = $this->makePartner();
 		$donor = $this->makeDonor();
 		$creditCard = $this->makeCreditCard();
 
-		return Transaction::create($partner, $donor, $creditCard);
-	}
+		$transaction = Transaction::create($partnerTransactionIdentifier, $partner, $donor, $creditCard);
 
-	public function makeDonationTransactionWithIds()
-	{
-		$faker = Faker::create();
+		while($numOfDonations--)
+		{
+			$transaction->addDonationItem( $this->makeDonationLineItem() );
+		}
 
-		$partner = $this->makePartner();
-		$donorToken = $faker->domainWord;
-		$cof_id = $faker->domainWord;
-
-		return Transaction::createByIds($partner, $donorToken, $cof_id);
+		return $transaction;
 	}
 
 	public function mockResponse($name, $StatusCode = 'Success', $Message = NULL, array $ErrorDetails = [], $CallDuration = 0)

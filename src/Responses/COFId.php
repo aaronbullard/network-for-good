@@ -1,21 +1,14 @@
 <?php namespace NetworkForGood\Responses;
 
-class COFId {
-
-	protected $cof;
-
-	public function __construct($cof)
-	{
-		$this->cof = $cof;
-	}
+class COFId extends Response {
 
 	public function getCOFId()
 	{
-		return $this->cof->CofId;
+		return $this->response->CofId;
 	}
 
 	public function getDonorToken()
 	{
-		return $this->cof->DonorToken;
+		return $this->response->DonorToken;
 	}
 }

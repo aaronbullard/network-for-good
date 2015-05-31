@@ -1,6 +1,8 @@
 <?php namespace NetworkForGood;
 
-use NetworkForGood\CreditCards\CreditCard;
+use NetworkForGood\Models\Donor;
+use NetworkForGood\Models\CreditCard;
+use NetworkForGood\Models\Transaction;
 
 interface NetworkForGoodInterface {
 	public function createCOF(Donor $donor, CreditCard $creditCard);

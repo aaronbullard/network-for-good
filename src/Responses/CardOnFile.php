@@ -1,41 +1,34 @@
 <?php namespace NetworkForGood\Responses;
 
-class CardOnFile {
-
-	protected $COFRecord;
-
-	public function __construct($COFRecord)
-	{
-		$this->COFRecord = $COFRecord;
-	}
+class CardOnFile extends Response {
 
 	public function getCOFId()
 	{
-		return $this->COFRecord->COFId;
+		return $this->response->COFId;
 	}
 
 	public function getCardType()
 	{
-		return $this->COFRecord->CardType;
+		return $this->response->CardType;
 	}
 
 	public function getCardNumberLastFour()
 	{
-		return $this->COFRecord->CCSuffix;
+		return $this->response->CCSuffix;
 	}
 
 	public function getExpirationMonth()
 	{
-		return $this->COFRecord->CCExpMonth;
+		return $this->response->CCExpMonth;
 	}
 
 	public function getExpirationYear()
 	{
-		return $this->COFRecord->CCExpYear;
+		return $this->response->CCExpYear;
 	}
 
 	public function getEmailAddress()
 	{
-		return $this->COFRecord->COFEmailAddress;
+		return $this->response->COFEmailAddress;
 	}
 }
