@@ -8,19 +8,21 @@ use NetworkForGood\Models\Transaction;
 use NetworkForGood\Models\CreditCard;
 use NetworkForGood\Responses\CardOnFile;
 use NetworkForGood\Responses\COFId;
-use NetworkForGood\Exceptions\OtherErrorException;
 use NetworkForGood\Exceptions\ValidationFailedException;
+use NetworkForGood\Exceptions\OtherErrorException;
 
 class SoapGateway implements NetworkForGoodInterface {
 
 	protected $partner;
 	protected $client;
 
+
 	public function __construct(Partner $partner, SoapClient $client)
 	{
 		$this->partner = $partner;
 		$this->client = $client;
 	}
+
 
 	/**
 	 * @param  Donor      $donor      [description]
@@ -35,6 +37,7 @@ class SoapGateway implements NetworkForGoodInterface {
 
 		return new COFId( $response );
 	}
+
 
 	/**
 	 *  
@@ -53,6 +56,7 @@ class SoapGateway implements NetworkForGoodInterface {
 		return $response->StatusCode === 'Success';
 	}
 
+
 	public function getDonorCOFs($donorToken)
 	{
 		$response = $this->execute('GetDonorCOFs', [
@@ -69,6 +73,7 @@ class SoapGateway implements NetworkForGoodInterface {
 		}, $cards);
 	}
 	
+
 	public function deleteDonorCOF($cofId, $donorToken = NULL)
 	{
 		$params = [];
@@ -84,12 +89,14 @@ class SoapGateway implements NetworkForGoodInterface {
 		return $response->StatusCode === 'Success';
 	}
 
+
 	public function getDonorDonationHistory($donorToken)
 	{
 		return $this->execute('GetDonorDonationHistory', [
 			'DonorToken' => $donorToken
 		]);
 	}
+
 
 	protected function execute($method, array $params)
 	{
@@ -109,6 +116,7 @@ class SoapGateway implements NetworkForGoodInterface {
 			throw new OtherErrorException($e->getMessage(), $e->getCode(), $e);
 		}
 	}
+
 
 	protected function interpretResponse($response)
 	{
