@@ -2,19 +2,20 @@
 namespace Helper;
 // here you can define custom actions
 // all public methods declared in helper class will be available in $I
-use Faker\Factory as Faker;
-use Faker\Provider\pl_PL\Person;
-use Faker\Provider\Internet;
-use NetworkForGood\Http\SoapGateway;
-use NetworkForGood\Donor;
-use NetworkForGood\Partner;
-use NetworkForGood\DonationLineItem;
-use NetworkForGood\DonationTransaction;
-use NetworkForGood\CreditCards\Amex;
-use NetworkForGood\Transaction;
+// use Faker\Factory as Faker;
+// use Faker\Provider\pl_PL\Person;
+// use Faker\Provider\Internet;
+// use NetworkForGood\Http\SoapGateway;
+// use NetworkForGood\Donor;
+// use NetworkForGood\Partner;
+// use NetworkForGood\DonationLineItem;
+// use NetworkForGood\DonationTransaction;
+// use NetworkForGood\CreditCards\Amex;
+// use NetworkForGood\Transaction;
 
 class Functional extends \Codeception\Module
 {
+	/*
 	public function getConfig()
 	{
 		return require __DIR__ . '/../../../src/NetworkForGood/config.php';
@@ -125,4 +126,5 @@ class Functional extends \Codeception\Module
 
 		return Transaction::createByIds($partner, $donorToken, $cof_id);
 	}
+	//*/
 }
