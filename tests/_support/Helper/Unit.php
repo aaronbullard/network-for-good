@@ -10,7 +10,7 @@ use NetworkForGood\Models\Donor;
 use NetworkForGood\Models\Partner;
 use NetworkForGood\Models\DonationItem;
 use NetworkForGood\Models\CreditCard;
-use NetworkForGood\Models\Transaction;
+// use NetworkForGood\Models\Transaction;
 use NetworkForGood\Models\COFDonation;
 
 use NetworkForGood\Contracts\DonorVis;
@@ -89,7 +89,7 @@ class Unit extends \Codeception\Module
 			"CSC" => (string) $cvc
 		]);
 	}
-
+/*
 	public function makeDonationTransaction($numOfDonations = 1)
 	{
 		$faker = Faker::create();
@@ -108,7 +108,7 @@ class Unit extends \Codeception\Module
 
 		return $transaction;
 	}
-
+//*/
 	public function makeCOFDonation($numDonationItems = 3)
 	{
 		$donor = $this->makeDonor();
@@ -118,7 +118,7 @@ class Unit extends \Codeception\Module
 			$donationLineItems[] = $this->makeDonationLineItem();
 		}
 
-		return COFDonation::create(
+		return COFDonation::factory(
 			'partnerId',
 			$donor,
 			1234,

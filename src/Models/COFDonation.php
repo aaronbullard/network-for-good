@@ -19,7 +19,7 @@ class COFDonation extends Model {
 		'COFId' => 'integer'
 	];
 
-	public static function create($PartnerTransactionIdentifier, Donor $donor, $cofId, array $donationLineItems = [], $tipAmount = 0)
+	public static function factory($PartnerTransactionIdentifier, Donor $donor, $cofId, array $donationLineItems = [], $tipAmount = 0)
 	{
 		$self = new static([
 			'PartnerTransactionIdentifier' => $PartnerTransactionIdentifier,
