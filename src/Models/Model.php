@@ -29,7 +29,7 @@ abstract class Model implements Arrayable, ArrayAccess, Iterator {
 
 	public function fill(array $attributes)
 	{
-		foreach($attributes as $property =>  $value)
+		foreach($attributes as $property => $value)
 		{
 			$method = 'set' . $property;
 
@@ -44,11 +44,11 @@ abstract class Model implements Arrayable, ArrayAccess, Iterator {
 	{
 		$this->validateObjectIsFilled();
 
+		$array = $this->attributes;
+
 		return array_map(function($item) {
-			return is_a($item, 'NetworkForGood\\Contracts\\Arrayable') ?
-						$item->toArray() :
-						$item;
-		}, $this->attributes);
+			return is_a($item, 'NetworkForGood\\Contracts\\Arrayable') ? $item->toArray() : $item;
+		}, $array);
 	}
 
 	protected function merge(Arrayable $object)
@@ -73,7 +73,7 @@ abstract class Model implements Arrayable, ArrayAccess, Iterator {
 	{
 		if( ! in_array($property, static::$properties))
 		{
-			throw new InvalidArgumentException("$property is not a property of " . __CLASS__);
+			throw new InvalidArgumentException("$property is not a property of " . get_called_class());
 		}
 	}
 
@@ -86,13 +86,17 @@ abstract class Model implements Arrayable, ArrayAccess, Iterator {
 		if( gettype($value) === $type)
 			return;
 
+		// accept an integer for type float, double, or decimal
+		if( gettype($value) === 'integer' && in_array($type, ['float', 'double', 'decimal']))
+			return;
+
 		if( gettype($value) === 'object')
 		{
 			if( is_a($value, $type))
 				return;
 		}
 
-		throw new InvalidArgumentException("$property is not of type $type.");
+		throw new InvalidArgumentException("$property is of type " . gettype($value) . " not of type $type.");
 	}
 
 
@@ -186,6 +190,7 @@ abstract class Model implements Arrayable, ArrayAccess, Iterator {
 
 		return $this->$method();
 	}
+
 
 	// Iterator
 	public function rewind()

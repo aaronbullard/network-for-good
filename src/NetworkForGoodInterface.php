@@ -2,10 +2,10 @@
 
 use NetworkForGood\Models\Donor;
 use NetworkForGood\Models\CreditCard;
-use NetworkForGood\Models\Transaction;
+use NetworkForGood\Models\COFDonation;
 
 interface NetworkForGoodInterface {
 	public function createCOF(Donor $donor, CreditCard $creditCard);
-	public function makeCOFDonation(Transaction $transaction);
+	public function makeCOFDonation(COFDonation $COFDonation);
 	public function getDonorCOFs($donorToken);
 }

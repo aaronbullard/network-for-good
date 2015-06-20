@@ -19,15 +19,18 @@ class SoapGatewayTest extends \Codeception\TestCase\Test
 		$this->partner = $this->tester->makePartner();
 	}
 
+
 	protected function _after()
 	{
 		Mockery::close();
 	}
 
+
 	protected function makeGateway(SoapClient $soapClient)
 	{
 		return new SoapGateway($this->partner, $soapClient);
 	}
+
 
 	protected function setExpectedStatusCodeException(SoapClient &$soapClient, $resultName, $params, $statusCode)
 	{
@@ -54,6 +57,7 @@ class SoapGatewayTest extends \Codeception\TestCase\Test
 		$this->assertEquals('Success', $response->getStatusCode());
 	}
 
+
 	protected function testCreateCofStatusFailed($status)
 	{
 		$donor 		= $this->tester->makeDonor();
@@ -66,25 +70,30 @@ class SoapGatewayTest extends \Codeception\TestCase\Test
 		$response = $gateway->createCOF($donor, $creditCard);
 	}
 
+
 	public function testCreateCofAccessDenied()
 	{
 		$this->testCreateCofStatusFailed('AccessDenied');
 	}
+
 
 	public function testCreateCofValidationFailed()
 	{
 		$this->testCreateCofStatusFailed('ValidationFailed');
 	}
 
+
 	public function testCreateCofProcessorError()
 	{
 		$this->testCreateCofStatusFailed('ProcessorError');
 	}
 
+
 	public function testCreateCofOtherError()
 	{
 		$this->testCreateCofStatusFailed('OtherError');
 	}
+
 
 	public function testGetDonorCofsSuccess()
 	{
@@ -102,6 +111,7 @@ class SoapGatewayTest extends \Codeception\TestCase\Test
 		$this->assertTrue(is_array( $response ));
 	}
 
+
 	protected function testGetDonorCofsStatusFailed($status)
 	{
 		$params = $this->partner->toArray();
@@ -114,25 +124,30 @@ class SoapGatewayTest extends \Codeception\TestCase\Test
 		$response = $gateway->getDonorCOFs($params['DonorToken']);
 	}
 
+
 	public function testGetDonorCofsAccessDenied()
 	{
 		$this->testGetDonorCofsStatusFailed('AccessDenied');
 	}
+
 
 	public function testGetDonorCofsValidationFailed()
 	{
 		$this->testGetDonorCofsStatusFailed('ValidationFailed');
 	}
 
+
 	public function testGetDonorCofsProcessorError()
 	{
 		$this->testGetDonorCofsStatusFailed('ProcessorError');
 	}
 
+
 	public function testGetDonorCofsOtherError()
 	{
 		$this->testGetDonorCofsStatusFailed('OtherError');
 	}
+
 
 	public function testDeleteDonorCOF()
 	{
@@ -157,22 +172,26 @@ class SoapGatewayTest extends \Codeception\TestCase\Test
 		$this->assertTrue($response);
 	}
 
+
 	public function testMakeCOFDonation()
 	{
-		$transaction = $this->tester->makeDonationTransaction(0);
+		$COFDonation = $this->tester->makeCOFDonation(0);
 
-		$transaction->addDonationItem( $this->tester->makeDonationLineItem() );
-		$transaction->addDonationItem( $this->tester->makeDonationLineItem() );
-		$transaction->addDonationItem( $this->tester->makeDonationLineItem() );
-		$transaction->addDonationItem( $this->tester->makeDonationLineItem() );
+		$COFDonation->addDonationItem( $this->tester->makeDonationLineItem() );
+		$COFDonation->addDonationItem( $this->tester->makeDonationLineItem() );
+		$COFDonation->addDonationItem( $this->tester->makeDonationLineItem() );
+		$COFDonation->addDonationItem( $this->tester->makeDonationLineItem() );
 
-		$params = array_merge($this->partner->toArray(), $transaction->toArray());
+		$params = array_merge($this->partner->toArray(), $COFDonation->toArray());
 
 		// Test Success without DonorToken
 		$soapClient = Mockery::mock('SoapClient');
 		$soapClient->shouldReceive('MakeCOFDonation')->with($params)->once()->andReturn( $this->tester->mockResponse('MakeCOFDonationResult'));
 		$gateway = $this->makeGateway( $soapClient );
-		$response = $gateway->makeCOFDonation($transaction);
+
+
+
+		$response = $gateway->makeCOFDonation($COFDonation);
 
 		$this->assertTrue( $response );
 	}

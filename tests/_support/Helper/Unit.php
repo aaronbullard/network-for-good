@@ -11,6 +11,7 @@ use NetworkForGood\Models\Partner;
 use NetworkForGood\Models\DonationItem;
 use NetworkForGood\Models\CreditCard;
 use NetworkForGood\Models\Transaction;
+use NetworkForGood\Models\COFDonation;
 
 use NetworkForGood\Contracts\DonorVis;
 use NetworkForGood\Contracts\RecurType;
@@ -29,7 +30,7 @@ class Unit extends \Codeception\Module
 
 		return new Donor([
 			'DonorToken' => $faker->word,
-			'DonorIpAddress' => $faker->ipv6,
+			'DonorIpAddress' => $faker->ipv4,
 			'DonorFirstName' => $faker->firstName,
 			'DonorLastName' => $faker->lastName,
 			'DonorEmail' => $faker->email,
@@ -83,7 +84,7 @@ class Unit extends \Codeception\Module
 			"NameOnCard" => $faker->name,
 			"CardType" => 'Amex',
 			"CardNumber" => '371449635398431',
-			"ExpMonth" => $faker->numberBetween(0, 12),
+			"ExpMonth" => $faker->numberBetween(1, 12),
 			"ExpYear" => $faker->numberBetween($currYear, $currYear + 5),
 			"CSC" => (string) $cvc
 		]);
@@ -106,6 +107,23 @@ class Unit extends \Codeception\Module
 		}
 
 		return $transaction;
+	}
+
+	public function makeCOFDonation($numDonationItems = 3)
+	{
+		$donor = $this->makeDonor();
+		$donationLineItems = [];
+
+		for ($i=0; $i < $numDonationItems; $i++) { 
+			$donationLineItems[] = $this->makeDonationLineItem();
+		}
+
+		return COFDonation::create(
+			'partnerId',
+			$donor,
+			1234,
+			$donationLineItems
+		);
 	}
 
 	public function mockResponse($name, $StatusCode = 'Success', $Message = NULL, array $ErrorDetails = [], $CallDuration = 0)

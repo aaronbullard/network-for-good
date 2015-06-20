@@ -4,7 +4,7 @@ use SoapClient, SoapFault;
 use NetworkForGood\NetworkForGoodInterface;
 use NetworkForGood\Models\Partner;
 use NetworkForGood\Models\Donor;
-use NetworkForGood\Models\Transaction;
+use NetworkForGood\Models\COFDonation;
 use NetworkForGood\Models\CreditCard;
 use NetworkForGood\Responses\CardOnFile;
 use NetworkForGood\Responses\COFId;
@@ -39,17 +39,12 @@ class SoapGateway implements NetworkForGoodInterface {
 	}
 
 
-	/**
-	 *  
-	 * @param  Transaction $transaction [description]
-	 * @return bool                   [description]
-	 */
-	public function makeCOFDonation(Transaction $transaction)
+	public function makeCOFDonation(COFDonation $COFDonation)
 	{
-		if( $transaction->countDonationItems() === 0 )
+		if( $COFDonation->countDonationItems() === 0 )
 			throw new ValidationFailedException("Transaction has 0 Donation Items.");
 
-		$params = $transaction->toArray();
+		$params = $COFDonation->toArray();
 
 		$response = $this->execute('MakeCOFDonation', $params);
 

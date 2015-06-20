@@ -66,7 +66,7 @@ class CreditCardTest extends \Codeception\TestCase\Test
 
 	public function testAnInvalidExpirationYear()
 	{
-		$this->setExpectedException('InvalidArgumentException', "ExpYear is not of type integer.");
+		$this->setExpectedException('InvalidArgumentException', "ExpYear is of type string not of type integer.");
 		
 		$cardInputs = $this->getCreditCardInputs();
 
@@ -88,7 +88,7 @@ class CreditCardTest extends \Codeception\TestCase\Test
 
 	public function testAnInvalidCSC()
 	{
-		$this->setExpectedException('InvalidArgumentException', "CSC is not of type string.");
+		$this->setExpectedException('InvalidArgumentException', "CSC is of type integer not of type string.");
 		
 		$cardInputs = $this->getCreditCardInputs();
 
