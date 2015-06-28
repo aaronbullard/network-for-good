@@ -48,7 +48,7 @@ class SoapGateway implements NetworkForGoodInterface {
 
 		$response = $this->execute('MakeCOFDonation', $params);
 
-		return $response->StatusCode === 'Success';
+		return $response;
 	}
 
 
