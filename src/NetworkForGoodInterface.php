@@ -8,4 +8,5 @@ interface NetworkForGoodInterface {
 	public function createCOF(Donor $donor, CreditCard $creditCard);
 	public function makeCOFDonation(COFDonation $COFDonation);
 	public function getDonorCOFs($donorToken);
+	public function deleteDonorCOF($cofId, $donorToken = NULL);
 }

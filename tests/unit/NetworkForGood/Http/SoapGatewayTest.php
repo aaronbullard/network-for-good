@@ -193,7 +193,7 @@ class SoapGatewayTest extends \Codeception\TestCase\Test
 
 		$response = $gateway->makeCOFDonation($COFDonation);
 
-		$this->assertTrue( $response );
+		$this->assertEquals($response->StatusCode, 'Success');
 	}
 
 }
