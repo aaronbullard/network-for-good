@@ -24,15 +24,14 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 		// Test
 		$response = $this->gateway->createCOF($donor, $creditCard);
 
-		$this->assertEquals($donor->DonorToken, $response->getDonorToken());
+		$this->assertEquals($donor->getDonorToken(), $response->getDonorToken());
 		$this->assertTrue(!is_null($response->getCOFId()));
-
-		$this->assertDonorTokenGetsCards($donor);
 	}
 
-	protected function assertDonorTokenGetsCards(Donor $donor)
+	public function testDonorTokenGetsCards()
 	{
-		// Test
+		$donor = $this->tester->makeDonor();
+
 		$response = $this->gateway->getDonorCOFs($donor->getDonorToken());
 
 		$this->assertTrue(is_array($response));
@@ -43,25 +42,34 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 				);
 		}
 
-		$this->testMakeCOFDonation($donor, $response[0]->getCOFId());
+		return $response;
 	}
 
-	private function testMakeCOFDonation(Donor $donor, $cofId)
+	public function testMakeCOFDonation()
 	{
-		$COFDonation = $this->tester->makeCOFDonation($donor, $cofId);
+		$donor = $this->tester->makeDonor();
+
+		$cards = $this->gateway->getDonorCOFs($donor->getDonorToken());
+
+		$COFDonation = $this->tester->makeCOFDonation($donor, $cards[0]->getCOFId());
 
 		// Test
 		$response = $this->gateway->makeCOFDonation($COFDonation);
-		$this->assertEquals($response->StatusCode, "Success");
 
-		$this->testDeleteDonorCOF($donor, $cofId);
+		$this->assertEquals($response->StatusCode, "Success");
 	}
 
-	private function testDeleteDonorCOF($donor, $cofId)
+	public function testDeleteDonorCOF()
 	{
+		$donor = $this->tester->makeDonor();
+
+		$cards = $this->gateway->getDonorCOFs($donor->getDonorToken());
+
+		foreach($cards as $card){
 			$this->assertTrue(
-				$this->gateway->deleteDonorCOF($cofId, $donor->getDonorToken())
+				$this->gateway->deleteDonorCOF($card->getCOFId(), $donor->getDonorToken())
 			);
+		}
 	}
 
 }

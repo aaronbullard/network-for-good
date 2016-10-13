@@ -1,7 +1,7 @@
 {
     "name": "aaronbullard/network-for-good",
     "description": "NetworkForGood API",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "authors": [
         {
             "name": "aaronbullard",
@@ -10,7 +10,7 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "guzzlehttp/guzzle": "~4.0"
+        "guzzlehttp/guzzle": "~6.2"
     },
     "require-dev": {
         "codeception/codeception": "2.1.*@dev",

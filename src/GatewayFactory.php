@@ -1,38 +1,72 @@
-<?php namespace NetworkForGood;
+<?php
+namespace NetworkForGood;
 
 use SoapClient;
+use GuzzleHttp\Client;
 use NetworkForGood\Models\Partner;
 use NetworkForGood\Http\SoapGateway;
+use NetworkForGood\Http\JsonGateway;
 
-class GatewayFactory {
+class GatewayFactory
+{
 
-  private function __construct(){}
+    private function __construct(){}
 
-  public static function build()
-  {
-    $config = static::getConfig();
+    public static function getConfig()
+    {
+        return require 'config.php';
+    }
 
-    // Partner
-    $cred = $config['partner'];
-    $partner = Partner::create([
-      'PartnerID' => $cred['id'],
-      'PartnerPW' => $cred['password'],
-      'PartnerSource' => $cred['source'],
-      'PartnerCampaign' => $cred['campaign']
-    ]);
+    public static function build()
+    {
+        $config = static::getConfig();
 
-    // Gateway
-    $wsdl = $config['endpoints']['sandbox']['wsdl'];
-    $client 	= new SoapClient($wsdl, [
-      'trace' => true,
-      'exceptions' => true
-    ]);
+        if(!$config['protocol']){
+          return static::build();
+        }
 
-    return new SoapGateway($partner, $client);
-  }
+        $method = sprintf("build%s", $config['protocol']);
 
-  public static function getConfig()
-  {
-      return require 'config.php';
-  }
+        return static::{$method}();
+    }
+
+    public static function buildSOAP()
+    {
+        $config = static::getConfig();
+
+        // Partner
+        $partner = static::getPartner();
+
+        // Gateway
+        $wsdl = $config['endpoints']['sandbox']['wsdl'];
+        $client 	= new SoapClient($wsdl, [
+          'trace' => true,
+          'exceptions' => true
+        ]);
+
+        return new SoapGateway($partner, $client);
+    }
+
+    public static function buildJSON()
+    {
+        $partner = static::getPartner();
+
+        $config = static::getConfig();
+
+        $client = new Client($config['json']);
+
+        return new JsonGateway($partner, $client);
+    }
+
+    private static function getPartner()
+    {
+        $config = static::getConfig();
+
+        return Partner::create([
+          'PartnerID' => $config['partner']['id'],
+          'PartnerPW' => $config['partner']['password'],
+          'PartnerSource' => $config['partner']['source'],
+          'PartnerCampaign' => $config['partner']['campaign']
+        ]);
+    }
 }

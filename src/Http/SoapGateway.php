@@ -67,13 +67,13 @@ class SoapGateway implements NetworkForGoodInterface {
 			return new CardOnFile( $record );
 		}, $cards);
 	}
-	
+
 
 	public function deleteDonorCOF($cofId, $donorToken = NULL)
 	{
 		$params = [];
 		$params['COFId'] = $cofId;
-		
+
 		if( isset($donorToken) )
 		{
 			$params['DonorToken'] = $donorToken;

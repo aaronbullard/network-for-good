@@ -20,7 +20,7 @@ class Functional extends \Codeception\Module
 		$faker = Faker::create();
 
 		return new Donor([
-			'DonorToken' => 'ABC123',
+			'DonorToken' => 'ABC123',//'802f365c-ed3d-4c80-8700-374aee6ac62c',
 			'DonorIpAddress' => $faker->ipv4,
 			'DonorFirstName' => $faker->firstName,
 			'DonorLastName' => $faker->lastName,
