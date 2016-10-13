@@ -2,10 +2,10 @@
 
 return [
 	'partner'	=> [
-		'id' 		=> getenv('NFG_PARTNER_ID'),
-		'password'	=> getenv('NFG_PARTNER_PASSWORD'),
-		'source'	=> getenv('NFG_PARTNER_SOURCE'),
-		'campaign'	=> getenv('NFG_PARTNER_CAMPAIGN')
+		'id' 		=> $_ENV['NFG_PARTNER_ID'],
+		'password'	=> $_ENV['NFG_PARTNER_PASSWORD'],
+		'source'	=> $_ENV['NFG_PARTNER_SOURCE'],
+		'campaign'	=> $_ENV['NFG_PARTNER_CAMPAIGN']
 	],
 	'endpoints'	=> [
 		'sandbox' => [

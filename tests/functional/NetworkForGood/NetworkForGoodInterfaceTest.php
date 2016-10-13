@@ -1,5 +1,6 @@
 <?php namespace NetworkForGood;
 
+use NetworkForGood\Models\Donor;
 
 class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 {
@@ -12,7 +13,7 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 
 	protected function _before()
 	{
-		$this->gateway = $this->tester->getNetworkForGoodInterface();
+		$this->gateway = GatewayFactory::build();
 	}
 
 	public function testCreateCOF($successful = TRUE)
@@ -20,38 +21,47 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 		$donor      = $this->tester->makeDonor($successful);
 		$creditCard = $this->tester->makeCreditCard($successful);
 
+		// Test
 		$response = $this->gateway->createCOF($donor, $creditCard);
 
-		foreach(['DonorToken', 'CofId'] as $property)
-		{
-			$this->assertTrue( isset($response->$property ) );
-		}
+		$this->assertEquals($donor->DonorToken, $response->getDonorToken());
+		$this->assertTrue(!is_null($response->getCOFId()));
 
-		$this->assertDonorTokenGetsCards($response->DonorToken);
+		$this->assertDonorTokenGetsCards($donor);
 	}
 
-	public function testMakeCOFDonation()
+	protected function assertDonorTokenGetsCards(Donor $donor)
 	{
-		$transaction = $this->tester->makeDonationTransactionWithIds();
-		$lineItem = $this->tester->makeDonationLineItem();
-		$transaction->addDonationLineItem( $lineItem );
+		// Test
+		$response = $this->gateway->getDonorCOFs($donor->getDonorToken());
 
-		$response = $this->gateway->makeCOFDonation($transaction);
-
-		foreach(['ChargeId', 'COFId'] as $property)
-		{
-			$this->assertTrue( isset($response->$property ) );
+		$this->assertTrue(is_array($response));
+		foreach($response as $CardOnFile){
+				$this->assertEquals(
+					\NetworkForGood\Responses\CardOnFile::class,
+					get_class($CardOnFile)
+				);
 		}
+
+		$this->testMakeCOFDonation($donor, $response[0]->getCOFId());
 	}
 
-	protected function assertDonorTokenGetsCards($donorToken)
+	private function testMakeCOFDonation(Donor $donor, $cofId)
 	{
-		$response = $this->gateway->getDonorCOFs($donorToken);
+		$COFDonation = $this->tester->makeCOFDonation($donor, $cofId);
 
-		foreach(['DonorToken', 'Cards'] as $property)
-		{
-			$this->assertTrue( isset($response->$property ) );
-		}
+		// Test
+		$response = $this->gateway->makeCOFDonation($COFDonation);
+		$this->assertEquals($response->StatusCode, "Success");
+
+		$this->testDeleteDonorCOF($donor, $cofId);
+	}
+
+	private function testDeleteDonorCOF($donor, $cofId)
+	{
+			$this->assertTrue(
+				$this->gateway->deleteDonorCOF($cofId, $donor->getDonorToken())
+			);
 	}
 
 }

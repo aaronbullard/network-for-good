@@ -2,88 +2,36 @@
 namespace Helper;
 // here you can define custom actions
 // all public methods declared in helper class will be available in $I
-// use Faker\Factory as Faker;
-// use Faker\Provider\pl_PL\Person;
-// use Faker\Provider\Internet;
-// use NetworkForGood\Http\SoapGateway;
-// use NetworkForGood\Donor;
-// use NetworkForGood\Partner;
-// use NetworkForGood\DonationLineItem;
-// use NetworkForGood\DonationTransaction;
-// use NetworkForGood\CreditCards\Amex;
-// use NetworkForGood\Transaction;
+use Faker\Factory as Faker;
+use Faker\Provider\pl_PL\Person;
+use Faker\Provider\Internet;
+use NetworkForGood\Http\SoapGateway;
+use NetworkForGood\Models\Donor;
+use NetworkForGood\Models\Partner;
+use NetworkForGood\Models\CreditCard;
+use NetworkForGood\Models\COFDonation;
+use NetworkForGood\Models\DonationItem;
 
 class Functional extends \Codeception\Module
 {
-	/*
-	public function getConfig()
-	{
-		return require __DIR__ . '/../../../src/NetworkForGood/config.php';
-	}
-
-	public function bootstrapPartner($ID, $Password, $Source, $Campaign)
-	{
-		return new Partner($ID, $Password, $Source, $Campaign);
-	}
-
-	public function bootstrapSoapGateway(Partner $partner, $wsdl)
-	{
-		return new SoapGateway($partner, $wsdl);
-	}
-
-	public function getNetworkForGoodInterface()
-	{
-		$config = $this->getConfig();
-		$wsdl = $config['endpoints']['sandbox']['wsdl'];
-		extract( $config['partner'] );
-
-		$partner = $this->bootstrapPartner($id, $password, $source, $campaign);
-
-		return $this->bootstrapSoapGateway($partner, $wsdl);
-	}
-
 
 	public function makeDonor($successful = TRUE)
 	{
 		$faker = Faker::create();
 
-		$streetAddress = $successful ? (string)$faker->numberBetween(1, 333) . " " . $faker->streetName :
-										(string)$faker->numberBetween(334, 999) . " " . $faker->streetName;
-
-		return new Donor(
-			$faker->firstName,
-			$faker->lastName,
-			$faker->email,
-			$streetAddress,
-			NULL,
-			$faker->city,
-			$faker->stateAbbr,
-			$faker->randomElement(['20005', '22213', '28412']),
-			'US',
-			$faker->phoneNumber,
-			NULL
-		);
-	}
-
-	public function makePartner()
-	{
-		$faker = Faker::create();
-
-		return new Partner($faker->randomNumber(), $faker->domainWord, $faker->uuid, $faker->catchPhrase);
-	}
-
-	public function makeDonationLineItem()
-	{
-		$faker = Faker::create();
-		$faker->addProvider(new Person($faker));
-
-		return new DonationLineItem(
-			$faker->taxpayerIdentificationNumber,
-			'ProvideAll',
-			$faker->numberBetween(10, 99000),
-			'NotRecurring',
-			'Add'
-		);
+		return new Donor([
+			'DonorToken' => 'ABC123',
+			'DonorIpAddress' => $faker->ipv4,
+			'DonorFirstName' => $faker->firstName,
+			'DonorLastName' => $faker->lastName,
+			'DonorEmail' => $faker->email,
+			'DonorAddress1' => $successful ? '222 Pass St.' : '444 Fail St.',
+			'DonorCity' => $faker->city,
+			'DonorState' => $faker->stateAbbr,
+			'DonorZip' => $successful ? '00000' : '77777',
+			'DonorCountry' => 'US',
+			'DonorPhone'=> $faker->phoneNumber,
+		]);
 	}
 
 	public function makeCreditCard($successful = TRUE)
@@ -96,35 +44,39 @@ class Functional extends \Codeception\Module
 			$cvc = '0' . $cvc;
 		}
 
-		return new Amex(
-			$faker->name,
-			'371449635398431',
-			$faker->numberBetween(1, 12),
-			$faker->numberBetween($currYear, $currYear + 5),
-			$cvc
-		);
+		return new CreditCard([
+			'CardType'			=> 'Amex',
+			'NameOnCard'	=> $faker->name,
+			'CardNumber' => '371449635398431',
+			'ExpMonth'		=> $faker->numberBetween(1, 12),
+			'ExpYear'		=> $faker->numberBetween($currYear, $currYear + 5),
+			'CSC'		=> $cvc
+		]);
 	}
 
-	public function makeDonationTransaction($numOfDonations = 1)
+	public function makeCOFDonation(Donor $donor, $cofId)
 	{
-		$faker = Faker::create();
-
-		$partner = $this->makePartner();
-		$donor = $this->makeDonor();
-		$creditCard = $this->makeCreditCard();
-
-		return Transaction::create($partner, $donor, $creditCard);
+		$donationItems = [$this->makeDonationItem()];
+		$tipAmount = 0;
+		return COFDonation::factory(
+				"BetYourCharity",
+				$donor,
+				$cofId,
+				$donationItems,
+				$tipAmount);
 	}
 
-	public function makeDonationTransactionWithIds()
+	public function makeDonationItem()
 	{
-		$faker = Faker::create();
-
-		$partner = $this->makePartner();
-		$donorToken = $faker->domainWord;
-		$cof_id = $faker->domainWord;
-
-		return Transaction::createByIds($partner, $donorToken, $cof_id);
+		return new DonationItem([
+			"NpoEin" => "590624430",
+			"Designation" => "BetYourCharity",
+			"Dedication" => "My team won the superbowl",
+			"donorVis" => "ProvideAll",
+			"ItemAmount" => 12.00,
+			"RecurType" => "NotRecurring",
+			"AddOrDeduct" => "Deduct",
+			"TransactionType" => "Donation"
+		]);
 	}
-	//*/
 }
