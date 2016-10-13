@@ -27,12 +27,12 @@ class JsonGateway implements NetworkForGoodInterface {
     {
         $this->partner = $partner;
         $this->client = $client;
-        $this->count = 0;
+
         // Get Access Token
-        $this->access_token = $this->getAccessToken();
+        $this->access_token = $this->requestAccessToken();
     }
 
-    private function getAccessToken()
+    private function requestAccessToken()
     {
         $data = $this->request('POST', '/access/rest/token', [
             'json' => [
@@ -93,17 +93,17 @@ class JsonGateway implements NetworkForGoodInterface {
                         'state' => $donor->getDonorState(),
                         'postalCode' => $donor->getDonorZip(),
                         'country' => $donor->getDonorCountry()
-                    ],
-                    'creditCard' => [
-                        'nameOnCard' => $creditCard->getNameOnCard(),
-                        'type' => $creditCard->getCardType(),
-                        'number' => $creditCard->getCardNumber(),
-                        'expiration' => [
-                            'month' => $creditCard->getExpMonth(),
-                            'year' => $creditCard->getExpYear()
-                        ],
-                        'securityCode' => $creditCard->getCSC()
                     ]
+                ],
+                'creditCard' => [
+                    'nameOnCard' => $creditCard->getNameOnCard(),
+                    'type' => $creditCard->getCardType(),
+                    'number' => $creditCard->getCardNumber(),
+                    'expiration' => [
+                        'month' => $creditCard->getExpMonth(),
+                        'year' => $creditCard->getExpYear()
+                    ],
+                    'securityCode' => $creditCard->getCSC()
                 ]
             ]
         ]);
@@ -113,64 +113,26 @@ class JsonGateway implements NetworkForGoodInterface {
 
 	public function makeCOFDonation(COFDonation $COFDonation)
     {
-dd("HERE");
         $body = $this->request('POST', '/service/rest/donation', [
-            'source' => $this->partner->getPartnerSource(),
-            'campaign' => $this->partner->getPartnerCampaign(),
-            "donationLineItems" => [
-                [
-                    "organizationId" => "590624430",
-                    "organizationIdType" => "Ein",
-                    "designation" => "Project A",
-                    "dedication" => "In honor of grandma",
-                    "donorPrivacy" => "ProvideAll",
-                    "amount" => "12.00",
-                    "feeAddOrDeduct" => "Deduct",
-                    "transactionType" => "Donation",
-                    "recurrence" => "NotRecurring"
-                ],
-                [
-                    "organizationId" => "510126000486",
-                    "organizationIdType" => "NcesSchoolId",
-                    "designation" => "Gym",
-                    "donorPrivacy" => "ProvideNameAndEmailOnly",
-                    "amount" => "47.00",
-                    "feeAddOrDeduct" => "Add",
-                    "transactionType" => "Donation"
+            'json' => [
+                'source' => $this->partner->getPartnerSource(),
+                'campaign' => $this->partner->getPartnerCampaign(),
+                "donationLineItems" => static::getDonationLineItems($COFDonation->getDonationLineItems()),
+                "totalAmount" => $COFDonation->getTotalAmount(),
+                "tipAmount" => $COFDonation->getTipAmount(),
+                "partnerTransactionId" => $COFDonation->getPartnerTransactionIdentifier(),
+                "payment" => [
+                    "source" => "CreditCard",
+                    "donor" => [
+                        "ip" => $COFDonation->getDonorIpAddress(),
+                        "token" => $COFDonation->getDonorToken()
+                    ],
+                    "cardOnFileId" => $COFDonation->getCOFId()
                 ]
-            ],
-            "totalAmount" => 60.41,
-            "tipAmount" => 0,
-            "partnerTransactionId" => "1bf1c16c-fdb7-4579-abab-738dbbe852ed",
-            "payment" => [
-                "source" => "CreditCard",
-                "donor" => [
-                    "ip" => "216.7.145.0",
-                    "token" => "802f365c-ed3d-4c80-8700-374aee6ac62c",
-                    "firstName" => "Francis",
-                   "lastName" => "Carter",
-                   "email" => "FrancisGCarter@teleworm.us",
-                   "phone" => "954-922-6971",
-                   "billingAddress" => [
-                     "street1" => "3731 Pointe Lane",
-                     "city" => "Hollywood",
-                     "state" => "FL",
-                     "postalCode" => "33020",
-                     "country" => "US"
-                 ]
-             ],
-                 "creditCard" => [
-                   "nameOnCard" => "Francis G. Carter",
-                   "type" => "Visa",
-                   "number" => "4111111111111111",
-                   "expiration" => [
-                     "month" => 11,
-                     "year" => 2019
-                   ],
-                   "securityCode" => "123"
-               ]
-           ]
+            ]
         ]);
+
+        return $body->status === 'Success';
     }
 
 	public function getDonorCOFs($donorToken)
@@ -190,5 +152,33 @@ dd("HERE");
         }, $cards);
     }
 
-	public function deleteDonorCOF($cofId, $donorToken = NULL){}
+	public function deleteDonorCOF($cofId, $donorToken = NULL)
+    {
+        $body = $this->request('DELETE', 'service/rest/cardOnFile', [
+            'json' => [
+                'source' => $this->partner->getPartnerSource(),
+                'campaign' => $this->partner->getPartnerCampaign(),
+                'donorToken' => $donorToken,
+                'cardOnFileId' => $cofId
+            ]
+        ]);
+
+        return $body->status === 'Success';
+    }
+
+    public static function getDonationLineItems(COFDonation $COFDonation)
+    {
+        return array_map(function($lineItem){
+            return [
+                "organizationId" => $lineItem->getNpoEin(),
+                "organizationIdType" => "Ein",
+                "designation" => $lineItem->getDesignation(),
+                "donorPrivacy" => $lineItem->getDonorVis(),
+                "amount" => $lineItem->getItemAmount(),
+                "feeAddOrDeduct" => $lineItem->getAddOrDeduct(),
+                "transactionType" => $lineItem->getTransactionType(),
+                "recurrence" => $lineItem->getRecurType()
+            ];
+        }, $COFDonation->getDonationLineItems());
+    }
 }

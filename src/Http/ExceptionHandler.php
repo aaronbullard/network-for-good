@@ -29,7 +29,7 @@ class ExceptionHandler {
 		{
 			$exception->setErrorDetails($response->ErrorDetails);
 		}
-		
+
 		throw $exception;
 	}
 }
