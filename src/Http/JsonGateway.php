@@ -111,31 +111,7 @@ class JsonGateway implements NetworkForGoodInterface {
         return new COFId($body);
     }
 
-	public function makeCOFDonation(COFDonation $COFDonation)
-    {
-        $body = $this->request('POST', '/service/rest/donation', [
-            'json' => [
-                'source' => $this->partner->getPartnerSource(),
-                'campaign' => $this->partner->getPartnerCampaign(),
-                "donationLineItems" => static::getDonationLineItems($COFDonation->getDonationLineItems()),
-                "totalAmount" => $COFDonation->getTotalAmount(),
-                "tipAmount" => $COFDonation->getTipAmount(),
-                "partnerTransactionId" => $COFDonation->getPartnerTransactionIdentifier(),
-                "payment" => [
-                    "source" => "CreditCard",
-                    "donor" => [
-                        "ip" => $COFDonation->getDonorIpAddress(),
-                        "token" => $COFDonation->getDonorToken()
-                    ],
-                    "cardOnFileId" => $COFDonation->getCOFId()
-                ]
-            ]
-        ]);
-
-        return $body->status === 'Success';
-    }
-
-	public function getDonorCOFs($donorToken)
+    public function getDonorCOFs($donorToken)
     {
         $body = $this->request('GET', '/service/rest/cardOnFile', [
             'query' => [
@@ -151,6 +127,33 @@ class JsonGateway implements NetworkForGoodInterface {
             return new CardOnFile($card);
         }, $cards);
     }
+
+	public function makeCOFDonation(COFDonation $COFDonation)
+    {
+        $json = [
+            'source' => $this->partner->getPartnerSource(),
+            'campaign' => $this->partner->getPartnerCampaign(),
+            "donationLineItems" => static::getDonationLineItems($COFDonation),
+            "totalAmount" => $COFDonation->getTotalAmount(),
+            "tipAmount" => $COFDonation->getTipAmount(),
+            "partnerTransactionId" => $COFDonation->getPartnerTransactionIdentifier(),
+            "payment" => [
+                "source" => "CreditCard",
+                "donor" => [
+                    "ip" => $COFDonation->getDonorIpAddress(),
+                    "token" => $COFDonation->getDonorToken()
+                ],
+                "cardOnFileId" => $COFDonation->getCOFId()
+            ]
+        ];
+
+        $body = $this->request('POST', '/service/rest/donation', [
+            'json' => $json
+        ]);
+
+        return $body->status === 'Success';
+    }
+
 
 	public function deleteDonorCOF($cofId, $donorToken = NULL)
     {
@@ -173,8 +176,8 @@ class JsonGateway implements NetworkForGoodInterface {
                 "organizationId" => $lineItem->getNpoEin(),
                 "organizationIdType" => "Ein",
                 "designation" => $lineItem->getDesignation(),
-                "donorPrivacy" => $lineItem->getDonorVis(),
-                "amount" => $lineItem->getItemAmount(),
+                "donorPrivacy" => $lineItem->getdonorVis(),
+                "amount" => sprintf("%d.00", $lineItem->getItemAmount()),
                 "feeAddOrDeduct" => $lineItem->getAddOrDeduct(),
                 "transactionType" => $lineItem->getTransactionType(),
                 "recurrence" => $lineItem->getRecurType()

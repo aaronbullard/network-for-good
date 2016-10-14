@@ -13,7 +13,10 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 
 	protected function _before()
 	{
-		$this->gateway = GatewayFactory::build();
+		$config = require __DIR__ . '/../../../src/config.php';
+		// $config['json']['base_uri'] = 'https://private-anon-853707d341-networkforgoodapi.apiary-proxy.com';
+		$config['json']['base_uri'] = 'https://api-sandbox.networkforgood.org';
+		$this->gateway = GatewayFactory::build($config);
 	}
 
 	public function testCreateCOF($successful = TRUE)
@@ -25,9 +28,10 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 		$response = $this->gateway->createCOF($donor, $creditCard);
 
 		// $this->assertEquals($donor->getDonorToken(), $response->getDonorToken());
-		$this->assertTrue(!is_null($response->getCOFId()));
+		$this->assertEquals($response->getStatusCode(), "Success");
+		$this->assertFalse(is_null($response->getCOFId()));
 	}
-//*/
+
 	public function testDonorTokenGetsCards()
 	{
 		$this->testCreateCOF();
@@ -48,18 +52,13 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 
 	public function testMakeCOFDonation()
 	{
-		$this->testCreateCOF();
 		$donor = $this->tester->makeDonor();
-
 		$cards = $this->gateway->getDonorCOFs($donor->getDonorToken());
-
 		$this->assertTrue(count($cards) > 0);
-
 		$COFDonation = $this->tester->makeCOFDonation($donor, $cards[0]->getCOFId());
 
 		// Test
 		$response = $this->gateway->makeCOFDonation($COFDonation);
-
 		$this->assertTrue($response);
 	}
 
@@ -68,12 +67,11 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 		$donor = $this->tester->makeDonor();
 
 		$cards = $this->gateway->getDonorCOFs($donor->getDonorToken());
+		$card = $cards[0];
 
-		foreach($cards as $card){
-			$this->assertTrue(
-				$this->gateway->deleteDonorCOF($card->getCOFId(), $donor->getDonorToken())
-			);
-		}
+		$this->assertTrue(
+			$this->gateway->deleteDonorCOF($card->getCOFId(), $donor->getDonorToken())
+		);
 	}
-//*/
+
 }

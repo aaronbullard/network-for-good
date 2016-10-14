@@ -9,33 +9,39 @@ use NetworkForGood\Http\JsonGateway;
 
 class GatewayFactory
 {
+    private $config;
 
-    private function __construct(){}
+    private function __construct(array $config)
+    {
+        $this->config = $config;
+    }
 
     public static function getConfig()
     {
         return require 'config.php';
     }
 
-    public static function build()
+    public static function build(array $config = [])
     {
-        $config = static::getConfig();
+        $config = empty($config) ? static::getConfig() : $config;
+
+        $self = new static($config);
 
         if(!$config['protocol']){
-          return static::build();
+          return $self->buildSOAP();
         }
 
         $method = sprintf("build%s", $config['protocol']);
 
-        return static::{$method}();
+        return $self->{$method}();
     }
 
-    public static function buildSOAP()
+    public function buildSOAP()
     {
-        $config = static::getConfig();
+        $config = $this->config;
 
         // Partner
-        $partner = static::getPartner();
+        $partner = $this->getPartner();
 
         // Gateway
         $wsdl = $config['endpoints']['sandbox']['wsdl'];
@@ -47,20 +53,20 @@ class GatewayFactory
         return new SoapGateway($partner, $client);
     }
 
-    public static function buildJSON()
+    public function buildJSON()
     {
-        $partner = static::getPartner();
+        $partner = $this->getPartner();
 
-        $config = static::getConfig();
+        $config = $this->config;
 
         $client = new Client($config['json']);
 
         return new JsonGateway($partner, $client);
     }
 
-    private static function getPartner()
+    private function getPartner()
     {
-        $config = static::getConfig();
+        $config = $this->config;
 
         return Partner::create([
           'PartnerID' => $config['partner']['id'],

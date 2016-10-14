@@ -4,7 +4,8 @@ require 'vendor/autoload.php';
 
 function dd($string)
 {
-	var_dump($string);die;
+	echo var_export($string, true);
+	exit;
 }
 
 

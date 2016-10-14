@@ -13,8 +13,8 @@ class CardOnFile extends Response {
 
 	public function getCOFId()
 	{
-		if(property_exists($this->response, 'id')){
-			return $this->response->id;
+		if(property_exists($this->response, 'Id')){
+			return $this->response->Id;
 		}
 
 		return $this->response->COFId;

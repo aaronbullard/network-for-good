@@ -18,7 +18,7 @@ class CreditCard extends Model {
 		'ExpYear' => 'integer'
 	];
 
-	protected static $cardTypes = ['Unk', 'Visa', 'Mastercard', 'Amex', 'Discover'];
+	protected static $cardTypes = ['Unk', 'Visa', 'Mastercard', 'Amex', 'Discover', 'American Express'];
 
 	public function __construct(array $attributes = [])
 	{
@@ -130,24 +130,24 @@ class CreditCard extends Model {
 		  "/^30[012345]\d{11}$/"     => "diners",
 		  "/^3[68]\d{12}$/"          => "diners",
 	   );
-	 
+
 	   foreach ($card_regexes as $regex => $type) {
 		   if (preg_match($regex, $cc_number)) {
 			   $card_type = $type;
 			   break;
 		   }
 	   }
-	 
+
 	   if (!$card_type) {
 		   return $false;
 	   }
-	 
+
 	   /*  mod 10 checksum algorithm  */
 	   $revcode = strrev($cc_number);
-	   $checksum = 0; 
-	 
+	   $checksum = 0;
+
 	   for ($i = 0; $i < strlen($revcode); $i++) {
-		   $current_num = intval($revcode[$i]);  
+		   $current_num = intval($revcode[$i]);
 		   if($i & 1) {  /* Odd  position */
 			  $current_num *= 2;
 		   }
@@ -157,7 +157,7 @@ class CreditCard extends Model {
 			   $checksum += 1;
 		   }
 	   }
-	 
+
 	   if ($checksum % 10 == 0) {
 		   return $card_type;
 	   } else {

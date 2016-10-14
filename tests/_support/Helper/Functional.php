@@ -45,12 +45,12 @@ class Functional extends \Codeception\Module
 		}
 
 		return new CreditCard([
-			'CardType'			=> 'Amex',
+			'CardType'		=> 'Visa',
 			'NameOnCard'	=> $faker->name,
-			'CardNumber' => '371449635398431',
+			'CardNumber' 	=> '4111111111111111',
 			'ExpMonth'		=> $faker->numberBetween(1, 12),
 			'ExpYear'		=> $faker->numberBetween($currYear, $currYear + 5),
-			'CSC'		=> $cvc
+			'CSC'			=> $cvc
 		]);
 	}
 

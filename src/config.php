@@ -19,7 +19,7 @@ return [
 		]
 	],
 	'json' => [
-		'base_uri' => 'https://private-anon-853707d341-networkforgoodapi.apiary-proxy.com',
+		'base_uri' => 'https://api-sandbox.networkforgood.org',
 		'headers' => [
 			'Content-Type' => 'application/json'
 		]
