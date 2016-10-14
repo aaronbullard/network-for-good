@@ -3,6 +3,7 @@ namespace NetworkForGood\Http;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Exception\ClientException;
 use NetworkForGood\NetworkForGoodInterface;
 use NetworkForGood\Models\Partner;
 use NetworkForGood\Models\Donor;
@@ -21,8 +22,6 @@ class JsonGateway implements NetworkForGoodInterface {
 
     protected $access_token;
 
-    protected $count;
-
     public function __construct(Partner $partner, Client $client)
     {
         $this->partner = $partner;
@@ -32,31 +31,45 @@ class JsonGateway implements NetworkForGoodInterface {
         $this->access_token = $this->requestAccessToken();
     }
 
-    private function requestAccessToken()
-    {
-        $data = $this->request('POST', '/access/rest/token', [
-            'json' => [
-                'source' =>$this->partner->getPartnerSource(),
-                'userid' => $this->partner->getPartnerID(),
-                'password' => $this->partner->getPartnerPW(),
-                'scope' => $this->partner->getPartnerCampaign()
-            ]
-        ]);
-
-        return $data->token;
-    }
-
     public function request($method, $resource, $payload = [])
     {
-        if( isset($this->access_token) ){
-            $payload['headers']['Authorization'] = sprintf("Bearer %s", $this->access_token);
-        }
+        $headers    = $this->getHeaders();
+        $uri        = $this->getUri($resource, $payload);
+        $body       = isset($payload['json']) ? $payload['json'] : null;
 
-        $response = $this->client->request($method, $resource, $payload);
+        $request    = new Request($method, $uri, $headers, json_encode($body));
+
+        try{
+            $response = $this->client->send( $request );
+        }catch(ClientException $e){
+            throw new OtherErrorException($e->getMessage(), $e->getCode(), $e);
+        }
 
         $data = json_decode($response->getBody()->getContents());
 
         return $this->interpretResponse($data);
+    }
+
+    protected function getHeaders()
+    {
+        $headers = [
+            'Content-Type' => 'application/json'
+        ];
+
+        if( isset($this->access_token) ){
+            $headers['Authorization'] = sprintf("Bearer %s", $this->access_token);
+        }
+
+        return $headers;
+    }
+
+    protected function getUri($resource, $payload = [])
+    {
+        if(isset($payload['query'])){
+            return sprintf("%s?%s", $resource, http_build_query($payload['query']));
+        }
+
+        return $resource;
     }
 
     protected function interpretResponse($response)
@@ -74,6 +87,20 @@ class JsonGateway implements NetworkForGoodInterface {
 
 		return ExceptionHandler::handle( $response );
 	}
+
+    protected function requestAccessToken()
+    {
+        $data = $this->request('POST', '/access/rest/token', [
+            'json' => [
+                'source' =>$this->partner->getPartnerSource(),
+                'userid' => $this->partner->getPartnerID(),
+                'password' => $this->partner->getPartnerPW(),
+                'scope' => $this->partner->getPartnerCampaign()
+            ]
+        ]);
+
+        return $data->token;
+    }
 
     public function createCOF(Donor $donor, CreditCard $creditCard)
     {
@@ -138,7 +165,7 @@ class JsonGateway implements NetworkForGoodInterface {
             "tipAmount" => $COFDonation->getTipAmount(),
             "partnerTransactionId" => $COFDonation->getPartnerTransactionIdentifier(),
             "payment" => [
-                "source" => "CreditCard",
+                "source" => "CardOnFile",
                 "donor" => [
                     "ip" => $COFDonation->getDonorIpAddress(),
                     "token" => $COFDonation->getDonorToken()
@@ -158,7 +185,7 @@ class JsonGateway implements NetworkForGoodInterface {
 	public function deleteDonorCOF($cofId, $donorToken = NULL)
     {
         $body = $this->request('DELETE', 'service/rest/cardOnFile', [
-            'json' => [
+            'query' => [
                 'source' => $this->partner->getPartnerSource(),
                 'campaign' => $this->partner->getPartnerCampaign(),
                 'donorToken' => $donorToken,
@@ -169,7 +196,7 @@ class JsonGateway implements NetworkForGoodInterface {
         return $body->status === 'Success';
     }
 
-    public static function getDonationLineItems(COFDonation $COFDonation)
+    protected static function getDonationLineItems(COFDonation $COFDonation)
     {
         return array_map(function($lineItem){
             return [

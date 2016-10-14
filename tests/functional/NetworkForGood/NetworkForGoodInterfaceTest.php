@@ -15,6 +15,7 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 	{
 		$config = require __DIR__ . '/../../../src/config.php';
 		// $config['json']['base_uri'] = 'https://private-anon-853707d341-networkforgoodapi.apiary-proxy.com';
+		// $config['json']['base_uri'] = 'https://private-anon-853707d341-networkforgoodapi.apiary-mock.com';
 		$config['json']['base_uri'] = 'https://api-sandbox.networkforgood.org';
 		$this->gateway = GatewayFactory::build($config);
 	}
@@ -27,14 +28,15 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 		// Test
 		$response = $this->gateway->createCOF($donor, $creditCard);
 
-		// $this->assertEquals($donor->getDonorToken(), $response->getDonorToken());
 		$this->assertEquals($response->getStatusCode(), "Success");
 		$this->assertFalse(is_null($response->getCOFId()));
+
+		return $response;
 	}
 
 	public function testDonorTokenGetsCards()
 	{
-		$this->testCreateCOF();
+		// $this->testCreateCOF();
 		$donor = $this->tester->makeDonor();
 
 		$response = $this->gateway->getDonorCOFs($donor->getDonorToken());
@@ -46,16 +48,13 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 					get_class($CardOnFile)
 				);
 		}
-
-		return $response;
 	}
 
 	public function testMakeCOFDonation()
 	{
 		$donor = $this->tester->makeDonor();
-		$cards = $this->gateway->getDonorCOFs($donor->getDonorToken());
-		$this->assertTrue(count($cards) > 0);
-		$COFDonation = $this->tester->makeCOFDonation($donor, $cards[0]->getCOFId());
+		$cardOnFile = $this->testCreateCOF();
+		$COFDonation = $this->tester->makeCOFDonation($donor, $cardOnFile->getCOFId());
 
 		// Test
 		$response = $this->gateway->makeCOFDonation($COFDonation);
@@ -64,13 +63,10 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 
 	public function testDeleteDonorCOF()
 	{
-		$donor = $this->tester->makeDonor();
-
-		$cards = $this->gateway->getDonorCOFs($donor->getDonorToken());
-		$card = $cards[0];
+		$cardOnFile = $this->testCreateCOF();
 
 		$this->assertTrue(
-			$this->gateway->deleteDonorCOF($card->getCOFId(), $donor->getDonorToken())
+			$this->gateway->deleteDonorCOF($cardOnFile->getCOFId(), $cardOnFile->getDonorToken())
 		);
 	}
 
