@@ -1,7 +1,7 @@
 {
     "name": "aaronbullard/network-for-good",
     "description": "NetworkForGood API",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "authors": [
         {
             "name": "aaronbullard",
@@ -10,17 +10,23 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "guzzlehttp/guzzle": "~4.0"
+        "guzzlehttp/guzzle": "~6.2"
     },
     "require-dev": {
         "codeception/codeception": "2.1.*@dev",
         "fzaninotto/faker": "~1.4",
-        "mockery/mockery": "0.9.*@dev"
+        "mockery/mockery": "0.9.*@dev",
+        "josegonzalez/dotenv": "dev-master"
     },
     "autoload": {
         "psr-4": {
             "NetworkForGood\\": "src/"
         }
+    },
+    "scripts": {
+      "test": [
+  			"vendor/bin/codecept run"
+  		]
     },
     "minimum-stability": "stable"
 }

@@ -48,7 +48,7 @@ class SoapGateway implements NetworkForGoodInterface {
 
 		$response = $this->execute('MakeCOFDonation', $params);
 
-		return $response;
+		return $response->StatusCode === 'Success';
 	}
 
 
@@ -67,13 +67,13 @@ class SoapGateway implements NetworkForGoodInterface {
 			return new CardOnFile( $record );
 		}, $cards);
 	}
-	
+
 
 	public function deleteDonorCOF($cofId, $donorToken = NULL)
 	{
 		$params = [];
 		$params['COFId'] = $cofId;
-		
+
 		if( isset($donorToken) )
 		{
 			$params['DonorToken'] = $donorToken;
