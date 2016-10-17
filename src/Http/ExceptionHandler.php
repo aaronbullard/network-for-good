@@ -14,8 +14,7 @@ class ExceptionHandler {
 	{
 		$statusCode = $response->StatusCode;
 
-		if( $statusCode === 'Success' )
-		{
+		if( $statusCode === 'Success' ){
 			return TRUE;
 		}
 
@@ -25,11 +24,10 @@ class ExceptionHandler {
 
 		$exception->setResponse( $response );
 
-		if ( isset( $response->ErrorDetails))
-		{
+		if ( isset( $response->ErrorDetails)){
 			$exception->setErrorDetails($response->ErrorDetails);
 		}
-		
+
 		throw $exception;
 	}
 }

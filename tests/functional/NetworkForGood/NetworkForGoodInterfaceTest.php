@@ -1,5 +1,6 @@
 <?php namespace NetworkForGood;
 
+use NetworkForGood\Models\Donor;
 
 class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 {
@@ -12,7 +13,11 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 
 	protected function _before()
 	{
-		$this->gateway = $this->tester->getNetworkForGoodInterface();
+		$config = require __DIR__ . '/../../../src/config.php';
+		// $config['json']['base_uri'] = 'https://private-anon-853707d341-networkforgoodapi.apiary-proxy.com';
+		// $config['json']['base_uri'] = 'https://private-anon-853707d341-networkforgoodapi.apiary-mock.com';
+		$config['json']['base_uri'] = 'https://api-sandbox.networkforgood.org';
+		$this->gateway = GatewayFactory::build($config);
 	}
 
 	public function testCreateCOF($successful = TRUE)
@@ -20,38 +25,49 @@ class NetworkForGoodInterfaceTest extends \Codeception\TestCase\Test
 		$donor      = $this->tester->makeDonor($successful);
 		$creditCard = $this->tester->makeCreditCard($successful);
 
+		// Test
 		$response = $this->gateway->createCOF($donor, $creditCard);
 
-		foreach(['DonorToken', 'CofId'] as $property)
-		{
-			$this->assertTrue( isset($response->$property ) );
-		}
+		$this->assertEquals($response->getStatusCode(), "Success");
+		$this->assertFalse(is_null($response->getCOFId()));
 
-		$this->assertDonorTokenGetsCards($response->DonorToken);
+		return $response;
+	}
+
+	public function testDonorTokenGetsCards()
+	{
+		// $this->testCreateCOF();
+		$donor = $this->tester->makeDonor();
+
+		$response = $this->gateway->getDonorCOFs($donor->getDonorToken());
+
+		$this->assertTrue(is_array($response));
+		foreach($response as $CardOnFile){
+				$this->assertEquals(
+					\NetworkForGood\Responses\CardOnFile::class,
+					get_class($CardOnFile)
+				);
+		}
 	}
 
 	public function testMakeCOFDonation()
 	{
-		$transaction = $this->tester->makeDonationTransactionWithIds();
-		$lineItem = $this->tester->makeDonationLineItem();
-		$transaction->addDonationLineItem( $lineItem );
+		$donor = $this->tester->makeDonor();
+		$cardOnFile = $this->testCreateCOF();
+		$COFDonation = $this->tester->makeCOFDonation($donor, $cardOnFile->getCOFId());
 
-		$response = $this->gateway->makeCOFDonation($transaction);
-
-		foreach(['ChargeId', 'COFId'] as $property)
-		{
-			$this->assertTrue( isset($response->$property ) );
-		}
+		// Test
+		$response = $this->gateway->makeCOFDonation($COFDonation);
+		$this->assertTrue($response);
 	}
 
-	protected function assertDonorTokenGetsCards($donorToken)
+	public function testDeleteDonorCOF()
 	{
-		$response = $this->gateway->getDonorCOFs($donorToken);
+		$cardOnFile = $this->testCreateCOF();
 
-		foreach(['DonorToken', 'Cards'] as $property)
-		{
-			$this->assertTrue( isset($response->$property ) );
-		}
+		$this->assertTrue(
+			$this->gateway->deleteDonorCOF($cardOnFile->getCOFId(), $cardOnFile->getDonorToken())
+		);
 	}
 
 }
