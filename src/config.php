@@ -19,7 +19,7 @@ return [
 		]
 	],
 	'json' => [
-		'base_uri' => 'https://api-sandbox.networkforgood.org',
+		'base_uri' => isset($_ENV['NFG_JSON_URI']) ? $_ENV['NFG_JSON_URI'] : 'https://api-sandbox.networkforgood.org',
 		'headers' => [
 			'Content-Type' => 'application/json'
 		]
